@@ -248,7 +248,7 @@ namespace Plaintext
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                gridDrop.Visibility = System.Windows.Visibility.Hidden;
+                gridDrop.Visibility = System.Windows.Visibility.Collapsed;
             }
         }
 
@@ -256,7 +256,7 @@ namespace Plaintext
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                gridDrop.Visibility = System.Windows.Visibility.Hidden;
+                gridDrop.Visibility = System.Windows.Visibility.Collapsed;
 
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
                 if (files.Length > 0)
@@ -292,7 +292,7 @@ namespace Plaintext
             }
             else
             {
-                saveButtonBorder.Visibility = System.Windows.Visibility.Hidden;
+                saveButtonBorder.Visibility = System.Windows.Visibility.Collapsed;
             }
         }
 
@@ -462,6 +462,10 @@ namespace Plaintext
                     MessageBox.Show(this, "Something went wrong!" + Environment.NewLine + Environment.NewLine + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+            if (txtFind.IsFocused == false)
+            {
+                txtMain.Focus();
+            }
         }
 
         private void SaveAs_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -492,5 +496,99 @@ namespace Plaintext
                 }
             }
         }
+
+        private void Find_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            findBorder.Visibility = System.Windows.Visibility.Visible;
+            txtFind.Focus();
+            txtFind.SelectAll();
+        }
+
+        private void txtFind_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key) 
+            {
+                case Key.Enter:
+                    FindNext_Executed(null, null);
+                    break;
+                case Key.Escape:
+                    HideFind();
+                    break;
+            }
+        }
+
+        private void HideFind()
+        {
+            findBorder.Visibility = System.Windows.Visibility.Collapsed;
+            txtMain.Focus();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            HideFind();
+        }
+
+        private void FindNext_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (txtFind.Text.Length > 0)
+            {
+                int pos = txtMain.Text.IndexOf(txtFind.Text, txtMain.SelectionStart + txtMain.SelectionLength, StringComparison.CurrentCultureIgnoreCase);
+                if (pos == -1)
+                {
+                    // TODO repeat search indicator
+                    pos = txtMain.Text.IndexOf(txtFind.Text);
+                }
+
+                if (pos == -1)
+                {
+                    // TODO not found indicator
+                }
+                else
+                {
+                    txtMain.Select(pos, txtFind.Text.Length);
+                }
+            }
+            else
+            {
+                Find_Executed(sender, e);
+            }
+        }
+
+        private void FindPrevious_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (txtFind.Text.Length > 0)
+            {
+                int pos = txtMain.Text.LastIndexOf(txtFind.Text, txtMain.SelectionStart, StringComparison.CurrentCultureIgnoreCase);
+                if (pos == -1)
+                {
+                    // TODO repeat search indicator
+                    pos = txtMain.Text.LastIndexOf(txtFind.Text);
+                }
+
+                if (pos == -1)
+                {
+                    // TODO not found indicator
+                }
+                else
+                {
+                    txtMain.Select(pos, txtFind.Text.Length);
+                }
+            }
+            else
+            {
+                Find_Executed(sender, e);
+            }
+        }
+
+        private void txtMain_LostFocus(object sender, RoutedEventArgs e)
+        {
+            txtMain.Background = Brushes.WhiteSmoke;
+        }
+
+        private void txtMain_GotFocus(object sender, RoutedEventArgs e)
+        {
+            txtMain.Background = Brushes.White;
+        }
+
     }
 }

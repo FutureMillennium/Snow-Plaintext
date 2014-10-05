@@ -11,18 +11,24 @@
         <CommandBinding Command="New" Executed="InsertTime_Executed" />
         <CommandBinding Command="Save" Executed="Save_Executed" />
         <CommandBinding Command="SaveAs" Executed="SaveAs_Executed" />
+        <CommandBinding Command="Find" Executed="Find_Executed" />
+        <CommandBinding Command="Help" Executed="FindNext_Executed" />
+        <CommandBinding Command="CorrectionList" Executed="FindPrevious_Executed" />
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="F5" Command="New"/>
         <KeyBinding Key="S" Command="Save" Modifiers="Ctrl"/>
-        <KeyBinding Key="S" Command="SaveAs" Modifiers="Control+Shift" />
+        <KeyBinding Key="S" Command="SaveAs" Modifiers="Ctrl+Shift" />
+        <KeyBinding Key="F" Command="Find" Modifiers="Ctrl"/>
+        <KeyBinding Key="F3" Command="Help" />
+        <KeyBinding Key="F3" Command="CorrectionList" Modifiers="Shift" />
     </Window.InputBindings>
     <Grid>
         <AdornerDecorator>
             <TextBox x:Name="txtMain" TextWrapping="Wrap" FontFamily="Lucida Console" FontSize="16" TextOptions.TextFormattingMode="Display" AcceptsTab="True" 
                      AcceptsReturn="True" BorderThickness="0" VerticalScrollBarVisibility="Auto" Padding="10" AllowDrop="True" TextChanged="txtMain_TextChanged" HorizontalScrollBarVisibility="Auto" 
                      PreviewDragEnter="Window_DragEnter" PreviewDragLeave="Window_DragLeave" PreviewDrop="Window_Drop" PreviewDragOver="Window_DragOver"
-                     TextBlock.LineHeight="20">
+                     TextBlock.LineHeight="20" LostFocus="txtMain_LostFocus" GotFocus="txtMain_GotFocus" Background="White">
                 <placeholder:PlaceholderService.Watermark>
                     <TextBlock x:Name="placeholderMain" FontFamily="Lucida Console" FontSize="16" TextOptions.TextFormattingMode="Display" Margin="2,0,0,0">Type here</TextBlock>
                 </placeholder:PlaceholderService.Watermark>
@@ -40,27 +46,56 @@
                         <MenuItem Header="Select _all" Name="cxmItemSelectAll" Click="ClickSelectAll" InputGestureText="Ctrl+A" />
                         <Separator Name="cxmInsertTimeSeparator"/>
                         <MenuItem Header="_Insert date and time" Name="cxmInsertTime" Command="New" InputGestureText="F5" />
+                        <Separator />
+                        <MenuItem Header="_Find in document…" Name="cxmFind" Command="Find" InputGestureText="Ctrl+F" />
                     </ContextMenu>
                 </TextBox.ContextMenu>
             </TextBox>
         </AdornerDecorator>
-        <Grid x:Name="gridDrop" Background="#E5FFFFFF" Visibility="Hidden">
+        <Grid x:Name="gridDrop" Background="#E5FFFFFF" Visibility="Collapsed">
             <Rectangle Stroke="#FFDADADA" StrokeDashArray="4 4" StrokeThickness="10" Margin="20" />
             <Label Content="Drop here to open" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="36" Foreground="#FFB4B4B4" FontWeight="Thin"/>
         </Grid>
-        <Border x:Name="saveButtonBorder" BorderThickness="1,0,1,1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,40,0" Padding="7,5,7,7" CornerRadius="0,0,7,7" Visibility="Hidden">
+        <Border x:Name="saveButtonBorder" BorderThickness="1,1,1,0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,40,0" Padding="7,7,7,5" CornerRadius="7,7,0,0" Visibility="Hidden">
             <Border.BorderBrush>
                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveBorderColorKey}}"/>
             </Border.BorderBrush>
             <Border.Background>
                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>
             </Border.Background>
-            <controls:SplitButton Command="Save">
+            <controls:SplitButton x:Name="btnSave" Command="Save" ToolTip="Save (Ctrl+S)">
                 <controls:SplitButton.MenuItemsSource>
-                    <MenuItem Header="Save as a new document…" Command="SaveAs" />
+                    <MenuItem Header="Save as a new document…" Command="SaveAs" InputGestureText="Ctrl+Shift+S" />
                 </controls:SplitButton.MenuItemsSource>
                 <TextBlock Padding="16,6" Text="Save" FontSize="14" />
             </controls:SplitButton>
+        </Border>
+        <Border x:Name="findBorder" BorderThickness="1,0,1,1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,40,0" Padding="7,5,7,7" CornerRadius="0,0,7,7" Visibility="Collapsed" KeyDown="txtFind_KeyDown">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveBorderColorKey}}"/>
+            </Border.BorderBrush>
+            <Border.Background>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>
+            </Border.Background>
+            <StackPanel Orientation="Horizontal">
+                <AdornerDecorator>
+                    <TextBox x:Name="txtFind" FontFamily="Lucida Console" FontSize="14" TextOptions.TextFormattingMode="Display" AcceptsTab="True" 
+                     Padding="7" AllowDrop="True" MinWidth="200" KeyDown="txtFind_KeyDown">
+                        <placeholder:PlaceholderService.Watermark>
+                            <TextBlock FontFamily="Lucida Console" FontSize="14" TextOptions.TextFormattingMode="Display" Margin="4,2,0,0">Find in document</TextBlock>
+                        </placeholder:PlaceholderService.Watermark>
+                    </TextBox>
+                </AdornerDecorator>
+                <Button Margin="5,0,0,0" Command="CorrectionList">
+                    <TextBlock FontSize="14" Padding="7,0">Previous</TextBlock>
+                </Button>
+                <Button Margin="3,0,0,0" Command="Help">
+                    <TextBlock FontSize="14" Padding="7,0">Next</TextBlock>
+                </Button>
+                <Button Margin="3,0,0,0" Click="Button_Click">
+                    <TextBlock FontSize="14" Padding="7,0">×</TextBlock>
+                </Button>
+            </StackPanel>
         </Border>
     </Grid>
 </Window>
