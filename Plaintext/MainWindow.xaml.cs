@@ -62,7 +62,7 @@ namespace Plaintext
 
 
 
-        bool isShowExtensions = false, isPlaceholderOpenedDoc = false;
+        bool isShowExtensions = false, isPlaceholderOpenedDoc = false, isDocumentChanged = false;
         string docPath, docName;
 
 
@@ -164,9 +164,10 @@ namespace Plaintext
                 if (txtMain.Text.Length > 0 && txtMain.Text.Substring(0, 4) == ".LOG")
                 {
                     txtMain.Select(txtMain.Text.Length, 0);
-                    txtMain.SelectedText = Environment.NewLine + DateTime.Now.ToString("G") + Environment.NewLine;
+                    txtMain.SelectedText = Environment.NewLine + Environment.NewLine + DateTime.Now.ToString("G") + Environment.NewLine;
                     txtMain.Select(txtMain.Text.Length, 0);
                 }
+                DocumentChanged(false);
             }
             catch (Exception e)
             {
@@ -267,6 +268,8 @@ namespace Plaintext
 
         private void txtMain_TextChanged(object sender, TextChangedEventArgs e)
         {
+            DocumentChanged(true);
+
             if (isPlaceholderOpenedDoc)
                 ChangePlaceholder(false);
 
@@ -274,6 +277,22 @@ namespace Plaintext
             {
                 docName = TruncateString(txtMain.Text, 60);
                 ChangeTitle();
+                if (txtMain.Text.Length == 0)
+                {
+                    DocumentChanged(false);
+                }
+            }
+        }
+
+        private void DocumentChanged(bool changed)
+        {
+            if (isDocumentChanged = changed)
+            {
+                saveButtonBorder.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                saveButtonBorder.Visibility = System.Windows.Visibility.Hidden;
             }
         }
 
@@ -425,6 +444,53 @@ namespace Plaintext
             return IntPtr.Zero;
         }
 
+        private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(docPath))
+            {
+                SaveAs_Executed(sender, e);
+            }
+            else
+            {
+                try
+                {
+                    System.IO.File.WriteAllText(docPath, txtMain.Text);
+                    DocumentChanged(false);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, "Something went wrong!" + Environment.NewLine + Environment.NewLine + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
 
+        private void SaveAs_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
+            dlg.FileName = docName; // Default file name
+            dlg.DefaultExt = ".txt"; // Default file extension
+            dlg.Filter = "Plain text documents|*.txt|All files|*.*"; // Filter files by extension
+            if (string.IsNullOrEmpty(docPath) == false)
+                dlg.InitialDirectory = System.IO.Path.GetDirectoryName(docPath);
+
+            // Show save file dialog box
+            Nullable<bool> result = dlg.ShowDialog();
+
+            // Process save file dialog box results
+            if (result == true)
+            {
+                // Save document
+                docPath = dlg.FileName;
+                try
+                {
+                    System.IO.File.WriteAllText(docPath, txtMain.Text);
+                    DocumentChanged(false);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, "Something went wrong!" + Environment.NewLine + Environment.NewLine + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
     }
 }
