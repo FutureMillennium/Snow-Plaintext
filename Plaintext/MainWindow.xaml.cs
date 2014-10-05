@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -21,7 +22,7 @@ namespace Plaintext
     /// </summary>
     public partial class MainWindow : Window
     {
-        bool isShowExtensions = false;
+        bool isShowExtensions = false, isPlaceholderOpenedDoc = false;
         string docPath, docName;
 
         [Flags]
@@ -47,36 +48,52 @@ namespace Plaintext
         [DllImport("shell32.dll")]
         static extern void SHGetSettings(out SHELLFLAGSTATE lpsfs, uint dwMask);
 
-        string TruncateString(string value, int length)
+        void ChangePlaceholder(bool isOpenedDoc)
         {
-            int pos1 = value.IndexOf(Environment.NewLine, 0);
-            if (value.Length <= length)
+            isPlaceholderOpenedDoc = isOpenedDoc;
+            ChangePlaceholder();
+        }
+
+        void ChangePlaceholder()
+        {
+            if (isPlaceholderOpenedDoc)
             {
-                if (pos1 > -1)
-                {
-                    return value.Substring(0, pos1).Trim();
-                }
-                else
-                {
-                    return value.Trim();
-                }
+                placeholderMain.Text = "This document is empty";
             }
             else
             {
-                if (pos1 > -1)
+                placeholderMain.Text = "Type here";
+            }
+        }
+
+        string TruncateString(string value, int length)
+        {
+            string result;
+            if (value.Length < length)
+                length = value.Length;
+
+            int pos1 = value.IndexOf(Environment.NewLine, 0, length);
+            if (pos1 > -1)
+            {
+                result = value.Substring(0, pos1);
+            }
+            else
+            {
+                if (value.Length == length)
                 {
-                    return value.Substring(0, pos1).Trim();
+                    result = value.Substring(0, length);
                 }
                 else
                 {
-                    pos1 = value.LastIndexOf(' ', length);
-                    int pos2 = value.LastIndexOf('\t', length);
+                    pos1 = value.LastIndexOf(' ', length - 1);
+                    int pos2 = value.LastIndexOf('\t', length - 1);
                     if (pos1 > -1 || pos2 > -1)
-                        return value.Substring(0, Math.Max(pos1, pos2)).Trim();
+                        result = value.Substring(0, Math.Max(pos1, pos2));
                     else
-                        return value.Substring(0, length).Trim();
+                        result = value.Substring(0, length);
                 }
             }
+            return result.Replace('\t', ' ').Trim();
         }
 
         /// <summary>
@@ -110,6 +127,33 @@ namespace Plaintext
             }
         }
 
+        void OpenFile(string fileName)
+        {
+            try
+            {
+                using (StreamReader sr = new StreamReader(fileName))
+                {
+                    txtMain.Text = sr.ReadToEnd();
+                }
+                docPath = fileName;
+                ChangeTitle();
+                if (txtMain.Text.Length == 0)
+                {
+                    ChangePlaceholder(true);
+                }
+                if (txtMain.Text.Length > 0 && txtMain.Text.Substring(0, 4) == ".LOG")
+                {
+                    txtMain.Select(txtMain.Text.Length, 0);
+                    txtMain.SelectedText = Environment.NewLine + DateTime.Now.ToString("G") + Environment.NewLine;
+                    txtMain.Select(txtMain.Text.Length, 0);
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(this, "Something went wrong!" + Environment.NewLine + Environment.NewLine + e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -123,8 +167,7 @@ namespace Plaintext
             string[] args = Environment.GetCommandLineArgs();
             if (args.Length > 1)
             {
-                docPath = args[1];
-                ChangeTitle();
+                OpenFile(args[1]);
             }
 
             if (App.createdNew && Properties.Settings.Default.WindowTop != -1)
@@ -163,29 +206,160 @@ namespace Plaintext
             Properties.Settings.Default.Save();
         }
 
+        private void Window_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Move;
+                e.Handled = true;
+            }
+        }
+
         private void Window_DragEnter(object sender, DragEventArgs e)
         {
-            e.Effects = DragDropEffects.Link;
-            gridDrop.Visibility = System.Windows.Visibility.Visible;
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                gridDrop.Visibility = System.Windows.Visibility.Visible;
+            }
         }
 
         private void Window_DragLeave(object sender, DragEventArgs e)
         {
-            gridDrop.Visibility = System.Windows.Visibility.Hidden;
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                gridDrop.Visibility = System.Windows.Visibility.Hidden;
+            }
         }
 
         private void Window_Drop(object sender, DragEventArgs e)
         {
-            gridDrop.Visibility = System.Windows.Visibility.Hidden;
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                gridDrop.Visibility = System.Windows.Visibility.Hidden;
+
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (files.Length > 0)
+                {
+                    OpenFile(files[0]);
+                }
+            }
         }
 
         private void txtMain_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (isPlaceholderOpenedDoc)
+                ChangePlaceholder(false);
+
             if (string.IsNullOrEmpty(docPath))
             {
                 docName = TruncateString(txtMain.Text, 60);
                 ChangeTitle();
             }
+        }
+
+        void ClickPaste(Object sender, RoutedEventArgs args) { txtMain.Paste(); }
+        void ClickCopy(Object sender, RoutedEventArgs args) { txtMain.Copy(); }
+        void ClickCut(Object sender, RoutedEventArgs args) { txtMain.Cut(); }
+        void ClickSelectAll(Object sender, RoutedEventArgs args) { txtMain.SelectAll(); }
+        void ClickClear(Object sender, RoutedEventArgs args) { txtMain.Clear(); }
+        void ClickUndo(Object sender, RoutedEventArgs args) { txtMain.Undo(); }
+        void ClickRedo(Object sender, RoutedEventArgs args) { txtMain.Redo(); }
+
+        void ClickSelectLine(Object sender, RoutedEventArgs args)
+        {
+            int lineIndex = txtMain.GetLineIndexFromCharacterIndex(txtMain.CaretIndex);
+            int lineStartingCharIndex = txtMain.GetCharacterIndexFromLineIndex(lineIndex);
+            int lineLength = txtMain.GetLineLength(lineIndex);
+            txtMain.Select(lineStartingCharIndex, lineLength);
+        }
+
+        void CxmOpened(Object sender, RoutedEventArgs args)
+        {
+            // Undo / Redo
+            if (txtMain.CanUndo)
+                cxmItemUndo.Visibility = System.Windows.Visibility.Visible;
+            else
+                cxmItemUndo.Visibility = System.Windows.Visibility.Collapsed;
+
+            if (txtMain.CanRedo)
+                cxmItemRedo.Visibility = System.Windows.Visibility.Visible;
+            else
+                cxmItemRedo.Visibility = System.Windows.Visibility.Collapsed;
+
+            // Cut / copy
+            if (txtMain.SelectionLength > 0)
+                cxmItemCopy.Visibility = cxmItemCut.Visibility = System.Windows.Visibility.Visible;
+            else
+                cxmItemCopy.Visibility = cxmItemCut.Visibility = System.Windows.Visibility.Collapsed;
+
+            // Paste
+            if (Clipboard.ContainsText())
+                cxmItemPaste.Visibility = System.Windows.Visibility.Visible;
+            else
+                cxmItemPaste.Visibility = System.Windows.Visibility.Collapsed;
+
+            if ((txtMain.CanUndo || txtMain.CanRedo) 
+                && (cxmItemPaste.Visibility == System.Windows.Visibility.Visible 
+                    || cxmItemCopy.Visibility == System.Windows.Visibility.Visible 
+                    || cxmItemCut.Visibility == System.Windows.Visibility.Visible))
+                cxmUndoSeparator.Visibility = System.Windows.Visibility.Visible;
+            else
+                cxmUndoSeparator.Visibility = System.Windows.Visibility.Collapsed;
+
+            // Select all
+            if (txtMain.Text.Length > 0)
+            {
+                cxmItemSelectAll.Visibility = System.Windows.Visibility.Visible;
+                if (txtMain.CanUndo || txtMain.CanRedo
+                    || cxmItemPaste.Visibility == System.Windows.Visibility.Visible
+                    || cxmItemCopy.Visibility == System.Windows.Visibility.Visible
+                    || cxmItemCut.Visibility == System.Windows.Visibility.Visible)
+                    cxmSelectAllSeparator.Visibility = System.Windows.Visibility.Visible;
+                else
+                    cxmSelectAllSeparator.Visibility = System.Windows.Visibility.Collapsed;
+            }
+            else
+            {
+                cxmItemSelectAll.Visibility = System.Windows.Visibility.Collapsed;
+                cxmSelectAllSeparator.Visibility = System.Windows.Visibility.Collapsed;
+            }
+
+            // Line wrap separator
+            if (txtMain.CanUndo || txtMain.CanRedo
+                ||cxmItemPaste.Visibility == System.Windows.Visibility.Visible
+                || cxmItemCopy.Visibility == System.Windows.Visibility.Visible
+                || cxmItemCut.Visibility == System.Windows.Visibility.Visible
+                || txtMain.Text.Length > 0)
+            {
+                cxmLineWrapSeparator.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                cxmLineWrapSeparator.Visibility = System.Windows.Visibility.Collapsed;
+            }
+        }
+
+        private void cxmLineWrap_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeWrap();
+        }
+
+        private void ChangeWrap()
+        {
+            if (cxmLineWrap.IsChecked)
+            {
+                txtMain.TextWrapping = TextWrapping.Wrap;
+            }
+            else
+            {
+                txtMain.TextWrapping = TextWrapping.NoWrap;
+            }
+        }
+
+        private void InsertTime_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            txtMain.SelectedText = DateTime.Now.ToString("G");
+            txtMain.Select(txtMain.Text.Length, 0);
         }
     }
 }
