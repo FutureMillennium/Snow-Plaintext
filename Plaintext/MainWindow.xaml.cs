@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -22,8 +23,6 @@ namespace Plaintext
     /// </summary>
     public partial class MainWindow : Window
     {
-        bool isShowExtensions = false, isPlaceholderOpenedDoc = false;
-        string docPath, docName;
 
         [Flags]
         enum SHELLFLAGSTATE : long
@@ -47,6 +46,27 @@ namespace Plaintext
 
         [DllImport("shell32.dll")]
         static extern void SHGetSettings(out SHELLFLAGSTATE lpsfs, uint dwMask);
+
+        const int WM_DROPFILES = 0x233;
+
+        [DllImport("shell32.dll")]
+        static extern void DragAcceptFiles(IntPtr hwnd, bool fAccept);
+
+        [DllImport("shell32.dll")]
+        static extern uint DragQueryFile(IntPtr hDrop, uint iFile, [Out] StringBuilder filename, uint cch);
+
+        [DllImport("shell32.dll")]
+        static extern void DragFinish(IntPtr hDrop);
+
+
+
+
+
+        bool isShowExtensions = false, isPlaceholderOpenedDoc = false;
+        string docPath, docName;
+
+
+
 
         void ChangePlaceholder(bool isOpenedDoc)
         {
@@ -361,5 +381,50 @@ namespace Plaintext
             txtMain.SelectedText = DateTime.Now.ToString("G");
             txtMain.Select(txtMain.Text.Length, 0);
         }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+
+            var helper = new WindowInteropHelper(this);
+            var hwnd = helper.Handle;
+
+            HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
+            source.AddHook(WndProc);
+
+            DragAcceptFiles(hwnd, true);
+        }
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == WM_DROPFILES)
+            {
+                handled = true;
+                return HandleDropFiles(wParam);
+            }
+
+            return IntPtr.Zero;
+        }
+
+        private IntPtr HandleDropFiles(IntPtr hDrop)
+        {
+            const int MAX_PATH = 260;
+
+            var count = DragQueryFile(hDrop, 0xFFFFFFFF, null, 0);
+
+            if (count > 0)
+            {
+                int size = (int)DragQueryFile(hDrop, 0, null, 0);
+                var filename = new StringBuilder(size + 1);
+                DragQueryFile(hDrop, 0, filename, MAX_PATH);
+                OpenFile(filename.ToString());
+            }
+
+            DragFinish(hDrop);
+
+            return IntPtr.Zero;
+        }
+
+
     }
 }
