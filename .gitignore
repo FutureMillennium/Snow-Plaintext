@@ -1,7 +1,7 @@
 /*.suo
 /Plaintext/bin/Debug
-/Plaintext/obj
-/bin/Plaintext.pdb
-/bin/Plaintext.vshost.exe
-/bin/Plaintext.vshost.exe.config
-/bin/Plaintext.vshost.exe.manifest
+obj
+*.pdb
+*.vshost.exe
+*.vshost.exe.config
+*.vshost.exe.manifest

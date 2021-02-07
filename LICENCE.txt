@@ -1,0 +1,51 @@
+Copyright © 2014–2021 Zdeněk Gromnica, all rights reserved, 
+unless otherwise noted.
+
+NON-COMMERCIAL use only, subject to the following licence: 
+
+- This licence covers one individual or entity: the licence owner, referred to 
+below as “you”. Zdeněk Gromnica (also known as “FutureMillennium”), referred to
+below as “the author”, owns the software and trademarks delivered with this 
+licence, unless otherwise noted. This licensed software is referred to below 
+as “the software”.
+- Third-party ownership and licensing information is denoted inside files 
+that this applies to.
+- This licence is non-exclusive and non-transferable. It takes effect the first
+time you transfer, copy, view, open, or install the software. It applies to all
+versions of the software, and any files, software, or data created with the use
+of the software, or any of its parts. The author reserves all rights that are 
+not granted to you in this licence.
+- Commercial use is defined as using the software in or for a business, 
+or for financial gain, whether directly or indirectly. Non-commercial use 
+is defined as anything but commercial use.
+- Subject to the limitations below, you may use the software for NON-COMMERCIAL
+use only.
+- You may modify the software, but the author’s copyright and trademark 
+notices must remain intact.
+- You may distribute modified or unmodified copies of the software, as long 
+as you include this licence, and copyright and authorship acknowledgements 
+in a suitable section. If modified, you must provide the source code 
+of the modified software in an unobfuscated format.
+- You may use the software only for projects on your behalf. These rights 
+don’t extend to files, projects, websites, data, or software you create 
+on behalf of third parties (e.g. as an external developer or contractor). 
+Third parties need to get their own licence.
+- This licence remains in effect until terminated.
+- You can terminate this licence by sending the author a request 
+for termination along with confirmation that you’ve deleted all copies 
+you’ve made of the software, including embedded copies and any files or data 
+you created with the use the software or any of its parts.
+- If you breach this licence, it will automatically terminate.
+- Important! The software is offered to you on an “as is” basis. You assume 
+the entire risk of the quality and performance of the software. You waive both 
+the implied warranty of fitness and the implied warranty against infringement 
+of third-party rights.
+- Also important! The author isn’t liable to you for any costs, damages, 
+or other losses arising from your use of the software – including third-party 
+claims against you.
+- This is the entire licence. If part of the licence turns out 
+to be unenforceable, the rest will remain. The licence can be changed only 
+if both parties agree in writing.
+
+Please e-mail zdenek.gromnica@futuremillennium.com if you wish to discuss 
+commercial use or different licensing terms.
