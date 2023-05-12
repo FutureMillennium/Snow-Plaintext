@@ -28,7 +28,7 @@
             <TextBox x:Name="txtMain" TextWrapping="Wrap" FontFamily="Lucida Console" FontSize="16" TextOptions.TextFormattingMode="Display" AcceptsTab="True" 
                      AcceptsReturn="True" BorderThickness="0" VerticalScrollBarVisibility="Auto" Padding="10" AllowDrop="True" TextChanged="txtMain_TextChanged" HorizontalScrollBarVisibility="Auto" 
                      PreviewDragEnter="Window_DragEnter" PreviewDragLeave="Window_DragLeave" PreviewDrop="Window_Drop" PreviewDragOver="Window_DragOver"
-                     TextBlock.LineHeight="20" LostFocus="txtMain_LostFocus" GotFocus="txtMain_GotFocus" Background="White">
+                     TextBlock.LineHeight="20" LostFocus="txtMain_LostFocus" GotFocus="txtMain_GotFocus" Background="White" IsInactiveSelectionHighlightEnabled="True" SelectionBrush="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" KeyDown="txtMain_KeyDown">
                 <placeholder:PlaceholderService.Watermark>
                     <TextBlock x:Name="placeholderMain" FontFamily="Lucida Console" FontSize="16" TextOptions.TextFormattingMode="Display" Margin="2,0,0,0">Type here</TextBlock>
                 </placeholder:PlaceholderService.Watermark>

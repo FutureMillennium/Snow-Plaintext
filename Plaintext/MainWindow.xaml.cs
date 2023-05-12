@@ -535,17 +535,21 @@ namespace Plaintext
                 int pos = txtMain.Text.IndexOf(txtFind.Text, txtMain.SelectionStart + txtMain.SelectionLength, StringComparison.CurrentCultureIgnoreCase);
                 if (pos == -1)
                 {
-                    // TODO repeat search indicator
-                    pos = txtMain.Text.IndexOf(txtFind.Text);
+					// beep when repeat search:
+					System.Media.SystemSounds.Beep.Play();
+
+					pos = txtMain.Text.IndexOf(txtFind.Text);
                 }
 
                 if (pos == -1)
                 {
-                    // TODO not found indicator
+                    // beep when not found:
+                    System.Media.SystemSounds.Beep.Play();
                 }
                 else
                 {
                     txtMain.Select(pos, txtFind.Text.Length);
+                    txtMain.Focus();
                 }
             }
             else
@@ -554,20 +558,29 @@ namespace Plaintext
             }
         }
 
-        private void FindPrevious_Executed(object sender, ExecutedRoutedEventArgs e)
+		private void txtMain_KeyDown(object sender, KeyEventArgs e) {
+            if (e.Key == Key.Escape && findBorder.Visibility == System.Windows.Visibility.Visible) {
+                HideFind();
+            }
+		}
+
+		private void FindPrevious_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (txtFind.Text.Length > 0)
             {
                 int pos = txtMain.Text.LastIndexOf(txtFind.Text, txtMain.SelectionStart, StringComparison.CurrentCultureIgnoreCase);
                 if (pos == -1)
                 {
-                    // TODO repeat search indicator
+                    // beep when repeat search:
+					System.Media.SystemSounds.Beep.Play();
+
                     pos = txtMain.Text.LastIndexOf(txtFind.Text);
                 }
 
                 if (pos == -1)
                 {
-                    // TODO not found indicator
+                    // beep when not found:
+                    System.Media.SystemSounds.Beep.Play();
                 }
                 else
                 {
